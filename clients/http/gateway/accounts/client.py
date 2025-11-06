@@ -1,207 +1,184 @@
 from typing import TypedDict
+
 from httpx import Response, QueryParams
 
 from clients.http.client import HTTPClient
+from clients.http.gateway.cards.client import CardDict
+from clients.http.gateway.client import build_gateway_http_client
 
 
-# Базовые типы для полей запросов
-class BaseOperationDict(TypedDict):
+# Добавили описание структуры счета
+class AccountDict(TypedDict):
     """
-    Базовая структура данных для общих полей операций.
+    Описание структуры аккаунта.
     """
-    account_id: str
-    amount: float
-
-
-class BaseMakeOperationRequestDict(BaseOperationDict):
-    """
-    Базовая структура данных для создания операций.
-    """
+    id: str
+    type: str
+    cards: list[CardDict]  # Вложенная структура: список карт
     status: str
+    balance: float
 
 
-# Специализированные структуры данных для конкретных операций
-class OperationInfoDict(TypedDict):
+class GetAccountsQueryDict(TypedDict):
     """
-    Структура данных для получения информации об отдельной операции.
+    Структура данных для получения списка счетов пользователя.
     """
-    operation_id: str
+    userId: str
 
 
-class GetOperationReceiptApiDict(TypedDict):
+# Добавили описание структуры ответа получения списка счетов
+class GetAccountsResponseDict(TypedDict):
     """
-    Структура данных для получения чека по операции.
+    Описание структуры ответа получения списка счетов.
     """
-    operation_id: str
+    accounts: list[AccountDict]
 
 
-class GetOperationsApiDict(TypedDict):
+class OpenDepositAccountRequestDict(TypedDict):
     """
-    Структура данных для получения списка операций по счету.
+    Структура данных для открытия депозитного счета.
     """
-    account_id: str
+    userId: str
 
 
-class GetOperationsSummaryApiDict(TypedDict):
+# Добавили описание структуры ответа открытия депозитного счета
+class OpenDepositAccountResponseDict(TypedDict):
     """
-    Структура данных для получения сводки операций по счету.
+    Описание структуры ответа открытия депозитного счета.
     """
-    account_id: str
+    account: AccountDict
 
 
-class FeeOperationApiDict(BaseMakeOperationRequestDict):
+class OpenSavingsAccountRequestDict(TypedDict):
     """
-    Структура данных для создания операции комиссии.
+    Структура данных для открытия сберегательного счета.
     """
-    fee_type: str
+    userId: str
 
 
-class TopUpOperationRequestDict(BaseMakeOperationRequestDict):
+# Добавили описание структуры ответа открытия сберегательного счета
+class OpenSavingsAccountResponseDict(TypedDict):
     """
-    Структура данных для создания операции пополнения.
+    Описание структуры ответа открытия сберегательного счета.
     """
-    top_up_method: str
+    account: AccountDict
 
 
-class CashbackOperationRequestDict(BaseMakeOperationRequestDict):
+class OpenDebitCardAccountRequestDict(TypedDict):
     """
-    Структура данных для создания операции кэшбэка.
+    Структура данных для открытия дебетового счета.
     """
-    cashback_category: str
+    userId: str
 
 
-class TransferOperationRequestDict(BaseMakeOperationRequestDict):
+# Добавили описание структуры ответа открытия дебетового счета
+class OpenDebitCardAccountResponseDict(TypedDict):
     """
-    Структура данных для создания операции перевода.
+    Описание структуры ответа открытия дебетового счета.
     """
-    destination_account_id: str
+    account: AccountDict
 
 
-class PurchaseOperationRequestDict(BaseMakeOperationRequestDict):
+class OpenCreditCardAccountRequestDict(TypedDict):
     """
-    Структура данных для создания операции покупки.
+    Структура данных для открытия кредитного счета.
     """
-    purchase_description: str
+    userId: str
 
 
-class BillPaymentOperationRequestDict(BaseMakeOperationRequestDict):
+# Добавили описание структуры ответа открытия кредитного счета
+class OpenCreditCardAccountResponseDict(TypedDict):
     """
-    Структура данных для создания операции оплаты по счету.
+    Описание структуры ответа открытия кредитного счета.
     """
-    bill_number: str
+    account: AccountDict
 
 
-class CashWithdrawalOperationRequestDict(BaseMakeOperationRequestDict):
+class AccountsGatewayHTTPClient(HTTPClient):
     """
-    Структура данных для создания операции снятия наличных.
-    """
-    withdrawal_location: str
-
-
-class OperationsGatewayHTTPClient(HTTPClient):
-    """
-    Клиент для взаимодействия с сервисом операций (/api/v1/operations) http-gateway.
+    Клиент для взаимодействия с /api/v1/accounts сервиса http-gateway.
     """
 
-    # Методы для получения информации
-    def get_operation_api(self, info: OperationInfoDict) -> Response:
+    def get_accounts_api(self, query: GetAccountsQueryDict):
         """
-        Выполняет GET-запрос на получение информации об операции по её ID.
+        Выполняет GET-запрос на получение списка счетов пользователя.
 
-        :param info: Словарь с информацией об операции, включая operation_id.
-        :return: Объект httpx.Response с деталями операции.
+        :param query: Словарь с параметрами запроса, например: {'userId': '123'}.
+        :return: Объект httpx.Response с данными о счетах.
         """
-        operation_id = info["operation_id"]
-        return self.get(f"/api/v1/operations/{operation_id}")
+        return self.get("/api/v1/accounts", params=QueryParams(**query))
 
-    def get_operation_receipt_api(self, info: GetOperationReceiptApiDict) -> Response:
+    def open_deposit_account_api(self, request: OpenDepositAccountRequestDict) -> Response:
         """
-        Выполняет GET-запрос на получение чека по конкретной операции.
+        Выполняет POST-запрос для открытия депозитного счёта.
 
-        :param info: Словарь с информацией об операции, включая operation_id.
-        :return: Объект httpx.Response с чеком операции.
+        :param request: Словарь с userId.
+        :return: Объект httpx.Response с результатом операции.
         """
-        operation_id = info["operation_id"]
-        return self.get(f"/api/v1/operations/operation-receipt/{operation_id}")
+        return self.post("/api/v1/accounts/open-deposit-account", json=request)
 
-    def get_operations_api(self, summary: GetOperationsApiDict) -> Response:
+    def open_savings_account_api(self, request: OpenSavingsAccountRequestDict) -> Response:
         """
-        Выполняет GET-запрос на получение списка операций по указанному счету.
+        Выполняет POST-запрос для открытия сберегательного счёта.
 
-        :param summary: Словарь с указанием аккаунта, например {"account_id": "123"}.
-        :return: Объект httpx.Response с перечнем операций.
+        :param request: Словарь с userId.
+        :return: Объект httpx.Response.
         """
-        return self.get("/api/v1/operations", params=QueryParams(**summary))
+        return self.post("/api/v1/accounts/open-savings-account", json=request)
 
-    def get_operations_summary_api(self, summary: GetOperationsSummaryApiDict) -> Response:
+    def open_debit_card_account_api(self, request: OpenDebitCardAccountRequestDict) -> Response:
         """
-        Выполняет GET-запрос на получение сводки операций по заданному аккаунту.
+        Выполняет POST-запрос для открытия дебетовой карты.
 
-        :param summary: Словарь с указанием аккаунта, например {"account_id": "123"}.
-        :return: Объект httpx.Response с обобщёнными данными по операциям.
+        :param request: Словарь с userId.
+        :return: Объект httpx.Response.
         """
-        return self.get("/api/v1/operations/operations-summary", params=QueryParams(**summary))
+        return self.post("/api/v1/accounts/open-debit-card-account", json=request)
 
-    # Методы для создания операций
-    def make_fee_operation_api(self, request: FeeOperationApiDict) -> Response:
+    def open_credit_card_account_api(self, request: OpenCreditCardAccountRequestDict) -> Response:
         """
-        Выполняет POST-запрос для создания операции комиссии.
+        Выполняет POST-запрос для открытия кредитной карты.
 
-        :param request: Словарь с данными о создании комиссии.
-        :return: Объект httpx.Response с результатами операции.
+        :param request: Словарь с userId.
+        :return: Объект httpx.Response.
         """
-        return self.post("/api/v1/operations/make-fee-operation", json=request)
+        return self.post("/api/v1/accounts/open-credit-card-account", json=request)
 
-    def make_top_up_operation_api(self, request: TopUpOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции пополнения.
+    # Добавили новый метод
+    def get_accounts(self, user_id: str) -> GetAccountsResponseDict:
+        query = GetAccountsQueryDict(userId=user_id)
+        response = self.get_accounts_api(query)
+        return response.json()
 
-        :param request: Словарь с данными о пополнении.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-top-up-operation", json=request)
+    # Добавили новый метод
+    def open_deposit_account(self, user_id: str) -> OpenDepositAccountResponseDict:
+        request = OpenDepositAccountRequestDict(userId=user_id)
+        response = self.open_deposit_account_api(request)
+        return response.json()
 
-    def make_cashback_operation_api(self, request: CashbackOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции кэшбэка.
+    # Добавили новый метод
+    def open_savings_account(self, user_id: str) -> OpenSavingsAccountResponseDict:
+        request = OpenSavingsAccountRequestDict(userId=user_id)
+        response = self.open_savings_account_api(request)
+        return response.json()
 
-        :param request: Словарь с данными о кэшбэке.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-cashback-operation", json=request)
+    # Добавили новый метод
+    def open_debit_card_account(self, user_id: str) -> OpenDebitCardAccountResponseDict:
+        request = OpenDebitCardAccountRequestDict(userId=user_id)
+        response = self.open_debit_card_account_api(request)
+        return response.json()
 
-    def make_transfer_operation_api(self, request: TransferOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции перевода.
+    # Добавили новый метод
+    def open_credit_card_account(self, user_id: str) -> OpenCreditCardAccountResponseDict:
+        request = OpenCreditCardAccountRequestDict(userId=user_id)
+        response = self.open_credit_card_account_api(request)
+        return response.json()
 
-        :param request: Словарь с данными о переводе.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-transfer-operation", json=request)
 
-    def make_purchase_operation_api(self, request: PurchaseOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции покупки.
+def build_accounts_gateway_http_client() -> AccountsGatewayHTTPClient:
+    """
+    Функция создаёт экземпляр AccountsGatewayHTTPClient с уже настроенным HTTP-клиентом.
 
-        :param request: Словарь с данными о покупке.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-purchase-operation", json=request)
-
-    def make_bill_payment_operation_api(self, request: BillPaymentOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции оплаты по счету.
-
-        :param request: Словарь с данными об оплате по счету.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-bill-payment-operation", json=request)
-
-    def make_cash_withdrawal_operation_api(self, request: CashWithdrawalOperationRequestDict) -> Response:
-        """
-        Выполняет POST-запрос для создания операции снятия наличных.
-
-        :param request: Словарь с данными о снятии наличных.
-        :return: Объект httpx.Response с результатами операции.
-        """
-        return self.post("/api/v1/operations/make-cash-withdrawal-operation", json=request)
+    :return: Готовый к использованию AccountsGatewayHTTPClient.
+    """
+    return AccountsGatewayHTTPClient(client=build_gateway_http_client())
