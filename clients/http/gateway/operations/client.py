@@ -1,6 +1,6 @@
 from httpx import Response, QueryParams
 
-from clients.http.client import HTTPClient
+from clients.http.client import HTTPClient, HTTPClientExtensions
 from clients.http.gateway.client import build_gateway_http_client
 from clients.http.gateway.operations.schema import (
     GetOperationResponseSchema,
@@ -27,23 +27,63 @@ from clients.http.gateway.operations.schema import (
 
 
 class OperationsGatewayHTTPClient(HTTPClient):
+    """
+    Клиент для взаимодействия с /api/v1/operations сервиса http-gateway.
+    """
+
     def get_operation_api(self, operation_id: str) -> Response:
-        return self.get(f"/api/v1/operations/{operation_id}")
+        """
+        Получает информацию об операции по её идентификатору.
+
+        :param operation_id: Уникальный идентификатор операции.
+        :return: Объект httpx.Response с данными об операции.
+        """
+        return self.get(
+            f"/api/v1/operations/{operation_id}",
+            extensions=HTTPClientExtensions(route="/api/v1/operations/{operation_id}")
+        )
 
     def get_operation_receipt_api(self, operation_id: str) -> Response:
-        return self.get(f"/api/v1/operations/operation-receipt/{operation_id}")
+        """
+        Получает чек по заданной операции.
+
+        :param operation_id: Уникальный идентификатор операции.
+        :return: Объект httpx.Response с чеком по операции.
+        """
+        return self.get(
+            f"/api/v1/operations/operation-receipt/{operation_id}",
+            extensions=HTTPClientExtensions(route="/api/v1/operations/operation-receipt/{operation_id}")
+        )
 
     def get_operations_api(self, query: GetOperationsQuerySchema) -> Response:
+        """
+        Получает список операций по счёту.
+
+        :param query: Словарь с параметром accountId.
+        :return: Объект httpx.Response с операциями по счёту.
+        """
         return self.get(
             "/api/v1/operations",
-            params=QueryParams(**query.model_dump(by_alias=True))
+            params=QueryParams(**query.model_dump(by_alias=True)),
+            extensions=HTTPClientExtensions(route="/api/v1/operations")
         )
 
     def get_operations_summary_api(self, query: GetOperationsSummaryQuerySchema) -> Response:
+        """
+        Получает сводную статистику операций по счёту.
+
+        :param query: Словарь с параметром accountId.
+        :return: Объект httpx.Response с агрегированной информацией.
+        """
         return self.get(
             "/api/v1/operations/operations-summary",
-            params=QueryParams(**query.model_dump(by_alias=True))
+            params=QueryParams(**query.model_dump(by_alias=True)),
+            extensions=HTTPClientExtensions(route="/api/v1/operations/operations-summary")
         )
+
+    # -------------------------
+    # OPERATIONS API
+    # -------------------------
 
     def make_fee_operation_api(self, request: MakeFeeOperationRequestSchema) -> Response:
         return self.post(
@@ -87,6 +127,10 @@ class OperationsGatewayHTTPClient(HTTPClient):
             json=request.model_dump(by_alias=True)
         )
 
+    # -------------------------
+    # HIGH LEVEL OPERATIONS
+    # -------------------------
+
     def get_operation(self, operation_id: str) -> GetOperationResponseSchema:
         response = self.get_operation_api(operation_id)
         return GetOperationResponseSchema.model_validate_json(response.text)
@@ -104,10 +148,6 @@ class OperationsGatewayHTTPClient(HTTPClient):
         query = GetOperationsSummaryQuerySchema(account_id=account_id)
         response = self.get_operations_summary_api(query)
         return GetOperationsSummaryResponseSchema.model_validate_json(response.text)
-
-    # -------------------------
-    # OPERATIONS
-    # -------------------------
 
     def make_fee_operation(self, card_id: str, account_id: str) -> MakeFeeOperationResponseSchema:
         request = MakeFeeOperationRequestSchema(card_id=card_id, account_id=account_id)
@@ -147,4 +187,3 @@ class OperationsGatewayHTTPClient(HTTPClient):
 
 def build_operations_gateway_http_client() -> OperationsGatewayHTTPClient:
     return OperationsGatewayHTTPClient(client=build_gateway_http_client())
-

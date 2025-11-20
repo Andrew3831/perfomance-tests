@@ -8,7 +8,7 @@ class OpenDebitCardAccountScenarioUser(HttpUser):
 
     def on_start(self) -> None:
         """
-        Создание пользователя перед выполнением задач.
+        Создание пользователя
         Отправляем POST /api/v1/users и сохраняем user_id.
         """
         create_user_payload = {
@@ -26,7 +26,7 @@ class OpenDebitCardAccountScenarioUser(HttpUser):
     @task
     def open_debit_card_account(self):
         """
-        Основная нагрузочная задача — открыть дебетовый счёт для созданного пользователя.
+        Открытие дебетового счёта для созданного пользователя.
         Выполняем POST /api/v1/accounts/open-debit-card-account.
         """
         payload = {
