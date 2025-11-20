@@ -71,7 +71,6 @@ class UsersGatewayGRPCClient(GRPCClient):
         )
         return self.create_user_api(request)
 
-
 def build_users_gateway_grpc_client() -> UsersGatewayGRPCClient:
     """
     Фабрика для создания экземпляра UsersGatewayGRPCClient.

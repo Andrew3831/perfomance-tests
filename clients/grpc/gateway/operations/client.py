@@ -1,4 +1,6 @@
 from grpc import Channel
+from locust.env import Environment
+from clients.grpc.gateway.client import build_gateway_locust_grpc_client
 
 from clients.grpc.client import GRPCClient
 from clients.grpc.gateway.client import build_gateway_grpc_client
@@ -245,6 +247,21 @@ class OperationsGatewayGRPCClient(GRPCClient):
             account_id=account_id
         )
         return self.make_cash_withdrawal_operation_api(request)
+
+
+def build_operations_gateway_locust_grpc_client(environment: Environment) -> OperationsGatewayGRPCClient:
+    """
+    Функция создаёт экземпляр OperationsGatewayGRPCClient, адаптированный под Locust.
+
+    Клиент использует gRPC-канал, обёрнутый интерцептором Locust, что позволяет
+    автоматически собирать метрики производительности во время нагрузочного тестирования.
+
+    :param environment: объект окружения Locust.
+    :return: экземпляр OperationsGatewayGRPCClient с gRPC-каналом, адаптированным для Locust.
+    """
+    return OperationsGatewayGRPCClient(
+        channel=build_gateway_locust_grpc_client(environment)
+    )
 
 
 def build_operations_gateway_grpc_client() -> OperationsGatewayGRPCClient:

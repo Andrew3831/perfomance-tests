@@ -1,4 +1,6 @@
 from grpc import Channel
+from locust.env import Environment
+from clients.grpc.gateway.client import build_gateway_locust_grpc_client
 
 from clients.grpc.client import GRPCClient
 from clients.grpc.gateway.client import build_gateway_grpc_client
@@ -54,6 +56,21 @@ class DocumentsGatewayGRPCClient(GRPCClient):
     def get_contract_document(self, account_id: str) -> GetContractDocumentResponse:
         request = GetContractDocumentRequest(account_id=account_id)
         return self.get_contract_document_api(request)
+
+
+def build_documents_gateway_locust_grpc_client(environment: Environment) -> DocumentsGatewayGRPCClient:
+    """
+    Функция создаёт экземпляр DocumentsGatewayGRPCClient, адаптированный под Locust.
+
+    Клиент использует gRPC-канал, обёрнутый Locust-интерцептором, что позволяет
+    автоматически собирать метрики производительности во время нагрузочного тестирования.
+
+    :param environment: объект окружения Locust.
+    :return: экземпляр DocumentsGatewayGRPCClient с gRPC-каналом для Locust.
+    """
+    return DocumentsGatewayGRPCClient(
+        channel=build_gateway_locust_grpc_client(environment)
+    )
 
 
 def build_documents_gateway_grpc_client() -> DocumentsGatewayGRPCClient:
