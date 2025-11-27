@@ -29,6 +29,7 @@ from clients.http.gateway.operations.schema import (
     MakeCashWithdrawalOperationRequestSchema,
     MakeCashWithdrawalOperationResponseSchema
 )
+from tools.routes import APIRoutes
 
 
 class OperationsGatewayHTTPClient(HTTPClient):
@@ -38,28 +39,32 @@ class OperationsGatewayHTTPClient(HTTPClient):
 
     def get_operation_api(self, operation_id: str) -> Response:
         return self.get(
-            f"/api/v1/operations/{operation_id}",
-            extensions=HTTPClientExtensions(route="/api/v1/operations/{operation_id}")
+            f"{APIRoutes.OPERATIONS}/{operation_id}",
+            extensions=HTTPClientExtensions(
+                route=f"{APIRoutes.OPERATIONS}/{{operation_id}}"
+            )
         )
 
     def get_operation_receipt_api(self, operation_id: str) -> Response:
         return self.get(
-            f"/api/v1/operations/operation-receipt/{operation_id}",
-            extensions=HTTPClientExtensions(route="/api/v1/operations/operation-receipt/{operation_id}")
+            f"{APIRoutes.OPERATIONS}/operation-receipt/{operation_id}",
+            extensions=HTTPClientExtensions(
+                route=f"{APIRoutes.OPERATIONS}/operation-receipt/{{operation_id}}"
+            )
         )
 
     def get_operations_api(self, query: GetOperationsQuerySchema) -> Response:
         return self.get(
-            "/api/v1/operations",
+            APIRoutes.OPERATIONS,
             params=QueryParams(**query.model_dump(by_alias=True)),
-            extensions=HTTPClientExtensions(route="/api/v1/operations")
+            extensions=HTTPClientExtensions(route=APIRoutes.OPERATIONS)
         )
 
     def get_operations_summary_api(self, query: GetOperationsSummaryQuerySchema) -> Response:
         return self.get(
-            "/api/v1/operations/operations-summary",
+            f"{APIRoutes.OPERATIONS}/operations-summary",
             params=QueryParams(**query.model_dump(by_alias=True)),
-            extensions=HTTPClientExtensions(route="/api/v1/operations/operations-summary")
+            extensions=HTTPClientExtensions(route=f"{APIRoutes.OPERATIONS}/operations-summary")
         )
 
     # -------------------------
@@ -68,43 +73,43 @@ class OperationsGatewayHTTPClient(HTTPClient):
 
     def make_fee_operation_api(self, request: MakeFeeOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-fee-operation",
+            f"{APIRoutes.OPERATIONS}/make-fee-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_top_up_operation_api(self, request: MakeTopUpOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-top-up-operation",
+            f"{APIRoutes.OPERATIONS}/make-top-up-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_cashback_operation_api(self, request: MakeCashbackOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-cashback-operation",
+            f"{APIRoutes.OPERATIONS}/make-cashback-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_transfer_operation_api(self, request: MakeTransferOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-transfer-operation",
+            f"{APIRoutes.OPERATIONS}/make-transfer-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_purchase_operation_api(self, request: MakePurchaseOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-purchase-operation",
+            f"{APIRoutes.OPERATIONS}/make-purchase-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_bill_payment_operation_api(self, request: MakeBillPaymentOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-bill-payment-operation",
+            f"{APIRoutes.OPERATIONS}/make-bill-payment-operation",
             json=request.model_dump(by_alias=True)
         )
 
     def make_cash_withdrawal_operation_api(self, request: MakeCashWithdrawalOperationRequestSchema) -> Response:
         return self.post(
-            "/api/v1/operations/make-cash-withdrawal-operation",
+            f"{APIRoutes.OPERATIONS}/make-cash-withdrawal-operation",
             json=request.model_dump(by_alias=True)
         )
 
@@ -171,13 +176,6 @@ def build_operations_gateway_http_client() -> OperationsGatewayHTTPClient:
 
 
 def build_operations_gateway_locust_http_client(environment: Environment) -> OperationsGatewayHTTPClient:
-    # ----------------------------------------------------
-    # Билдер для LOCUST
-    # ----------------------------------------------------
-    # Создаёт OperationsGatewayHTTPClient, который интегрирован с Locust:
-    #   - метрики автоматически отправляются в Locust Environment
-    #   - собираются времена откликов, количество ошибок, статистика
-    #   - используется только в нагрузочном тестировании
     return OperationsGatewayHTTPClient(
         client=build_gateway_locust_http_client(environment)
     )

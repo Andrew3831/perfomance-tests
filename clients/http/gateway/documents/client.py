@@ -10,6 +10,7 @@ from clients.http.gateway.documents.schema import (
     GetTariffDocumentResponseSchema,
     GetContractDocumentResponseSchema,
 )
+from tools.routes import APIRoutes
 
 
 class DocumentsGatewayHTTPClient(HTTPClient):
@@ -19,17 +20,17 @@ class DocumentsGatewayHTTPClient(HTTPClient):
 
     def get_tariff_document_api(self, account_id: str) -> Response:
         return self.get(
-            f"/api/v1/documents/tariff-document/{account_id}",
+            f"{APIRoutes.DOCUMENTS}/tariff-document/{account_id}",
             extensions=HTTPClientExtensions(
-                route="/api/v1/documents/tariff-document/{account_id}"
+                route=f"{APIRoutes.DOCUMENTS}/tariff-document/{{account_id}}"
             )
         )
 
     def get_contract_document_api(self, account_id: str) -> Response:
         return self.get(
-            f"/api/v1/documents/contract-document/{account_id}",
+            f"{APIRoutes.DOCUMENTS}/contract-document/{account_id}",
             extensions=HTTPClientExtensions(
-                route="/api/v1/documents/contract-document/{account_id}"
+                route=f"{APIRoutes.DOCUMENTS}/contract-document/{{account_id}}"
             )
         )
 
@@ -49,13 +50,6 @@ def build_documents_gateway_http_client() -> DocumentsGatewayHTTPClient:
 
 
 def build_documents_gateway_locust_http_client(environment: Environment) -> DocumentsGatewayHTTPClient:
-    # ----------------------------------------------------
-    # Билдер для LOCUST
-    # ----------------------------------------------------
-    # Создаёт DocumentsGatewayHTTPClient, адаптированный под нагрузочные тесты:
-    #   - автоматически подключается к Locust Environment
-    #   - отправляет туда метрики выполнения каждого http-запроса
-    #   - используется только в performance/load тестировании
     return DocumentsGatewayHTTPClient(
         client=build_gateway_locust_http_client(environment)
     )
