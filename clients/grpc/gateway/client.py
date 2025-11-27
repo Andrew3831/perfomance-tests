@@ -22,11 +22,7 @@ def build_gateway_locust_grpc_client(environment: Environment) -> Channel:
     :param environment: Среда выполнения Locust (необходима для отправки событий).
     :return: gRPC-канал с интерцептором, пригодный для нагрузочного тестирования.
     """
-    # Создаём экземпляр интерцептора, передаём в него окружение Locust
     locust_interceptor = LocustInterceptor(environment=environment)
 
-    # Создаём обычный канал
     channel = insecure_channel("localhost:9003")
-
-    # Оборачиваем канал интерцептором, чтобы все запросы проходили через него
     return intercept_channel(channel, locust_interceptor)
