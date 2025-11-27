@@ -1,18 +1,18 @@
 from httpx import Response
-from locust.env import Environment  # Импорт окружения Locust
+from locust.env import Environment
 
 from clients.http.client import HTTPClient, HTTPClientExtensions
 from clients.http.gateway.client import (
     build_gateway_http_client,
-    build_gateway_locust_http_client  # Импорт билдера для нагрузочного тестирования
+    build_gateway_locust_http_client
 )
 from clients.http.gateway.users.schema import (
     GetUserResponseSchema,
     CreateUserRequestSchema,
     CreateUserResponseSchema
 )
+from tools.routes import APIRoutes  # Импортируем enum APIRoutes
 
-# Старые модели с использованием TypedDict были удалены
 
 class UsersGatewayHTTPClient(HTTPClient):
     """
@@ -26,12 +26,12 @@ class UsersGatewayHTTPClient(HTTPClient):
         :param user_id: Идентификатор пользователя.
         :return: Ответ от сервера (объект httpx.Response).
         """
-
+        # Вместо /api/v1/users используем APIRoutes.USERS
         return self.get(
-            f"/api/v1/users/{user_id}",
-            extensions=HTTPClientExtensions(route="/api/v1/users/{user_id}"))  # Явно передаём логическое имя маршрута
+            f"{APIRoutes.USERS}/{user_id}",
+            extensions=HTTPClientExtensions(route=f"{APIRoutes.USERS}/{{user_id}}")
+        )
 
-    # Теперь используем pydantic-модель для аннотации
     def create_user_api(self, request: CreateUserRequestSchema) -> Response:
         """
         Создание нового пользователя.
@@ -39,8 +39,8 @@ class UsersGatewayHTTPClient(HTTPClient):
         :param request: Pydantic-модель с данными нового пользователя.
         :return: Ответ от сервера (объект httpx.Response).
         """
-        # Сериализуем модель в словарь с использованием alias
-        return self.post("/api/v1/users", json=request.model_dump(by_alias=True))
+        # Вместо /api/v1/users используем APIRoutes.USERS
+        return self.post(APIRoutes.USERS, json=request.model_dump(by_alias=True))
 
     def get_user(self, user_id: str) -> GetUserResponseSchema:
         response = self.get_user_api(user_id)
@@ -52,9 +52,6 @@ class UsersGatewayHTTPClient(HTTPClient):
         # Генерация данных теперь происходит внутри схемы запроса
         request = CreateUserRequestSchema()
         response = self.create_user_api(request)
-        return CreateUserResponseSchema.model_validate_json(response.text)
-        response = self.create_user_api(request)
-        # Инициализируем модель через валидацию JSON строки
         return CreateUserResponseSchema.model_validate_json(response.text)
 
 
