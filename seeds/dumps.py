@@ -1,32 +1,41 @@
-import os
+import json
+from pathlib import Path
 
 from seeds.schema.result import SeedsResult
+from tools.logger import get_logger
+
+# Создаём логгер один раз
+logger = get_logger("SEEDS_DUMPS")
+
+DUMPS_DIR = Path("./dumps")
+DUMPS_DIR.mkdir(exist_ok=True)
 
 
-def save_seeds_result(result: SeedsResult, scenario: str):
+def save_seeds_result(result: SeedsResult, scenario: str) -> None:
     """
-    Сохраняет результат сидинга (SeedsResult) в JSON-файл.
-
-    :param result: Результат сидинга, сгенерированный билдером.
-    :param scenario: Название сценария нагрузки, для которого создаются данные.
-                     Используется для генерации имени файла (например, "credit_card_test").
+    Сохраняет результат сидинга в JSON-файл.
     """
-    # Убедимся, что папка dumps существует
-    if not os.path.exists("dumps"):
-        os.mkdir("dumps")
+    seeds_file = DUMPS_DIR / f"{scenario}_seeds.json"
 
-    # Сохраняем результат сидинга в файл с именем {scenario}_seeds.json
-    with open(f"./dumps/{scenario}_seeds.json", 'w+', encoding="utf-8") as file:
-        file.write(result.model_dump_json())
+    with open(seeds_file, "w", encoding="utf-8") as f:
+        json.dump(result.model_dump(), f, indent=2, ensure_ascii=False)
+
+    # Логирование после успешного сохранения
+    logger.debug(f"Seeding result saved to file: {seeds_file}")
 
 
 def load_seeds_result(scenario: str) -> SeedsResult:
     """
     Загружает результат сидинга из JSON-файла.
-
-    :param scenario: Название сценария нагрузки, данные которого нужно загрузить.
-    :return: Объект SeedsResult, восстановленный из файла.
     """
-    # Открываем файл и валидируем его как объект SeedsResult
-    with open(f'./dumps/{scenario}_seeds.json', 'r', encoding="utf-8") as file:
-        return SeedsResult.model_validate_json(file.read())
+    seeds_file = DUMPS_DIR / f"{scenario}_seeds.json"
+
+    with open(seeds_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    result = SeedsResult(**data)
+
+    # Логирование после успешной загрузки
+    logger.debug(f"Seeding result loaded from file: {seeds_file}")
+
+    return result
