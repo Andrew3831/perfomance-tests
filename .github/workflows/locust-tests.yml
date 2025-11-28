@@ -1,4 +1,4 @@
-name: Run Locust performance tests
+name: Run tests
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
   # 1. Запуск нагрузочных тестов
   # -------------------------
   run-tests:
-    name: Run performance tests
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +29,7 @@ jobs:
           pip install -r requirements.txt
 
       # Запуск Locust и генерация отчёта
-      - name: Run Locust tests
+      - name: Run tests
         run: |
           mkdir -p reports
           locust -f locustfile.py \
