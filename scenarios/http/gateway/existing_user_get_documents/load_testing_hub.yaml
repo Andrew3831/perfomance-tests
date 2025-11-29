@@ -1,0 +1,18 @@
+api_url: "http://localhost:13000"          # URL API Load Testing Hub
+
+service:
+  id: 1                                     # ID сервиса
+
+scenario:
+  id: 1                                     # ID сценария
+  name: "existing_user_get_documents"       # Название сценария
+  file: "./scenarios/http/gateway/existing_user_get_documents/v1.0.conf"  # Путь к конфигу сценария
+  version: "v1.0"                           # Версия
+  number_of_users: 100                      # Количество пользователей
+  runtime_duration: "3m"                    # Длительность теста
+
+# Локальные файлы с отчётами Locust
+csv_locust_stats_file: "locust_http_gateway_existing_user_get_documents_stats.csv"
+json_locust_ratio_file: "locust_http_gateway_existing_user_get_documents_stats.json"
+csv_locust_exceptions_file: "locust_http_gateway_existing_user_get_documents_exceptions.csv"
+csv_locust_stats_history_file: "locust_http_gateway_existing_user_get_documents_stats_history.csv"

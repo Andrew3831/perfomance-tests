@@ -1,0 +1,15 @@
+api_url: http://localhost:13000              # URL API Load Testing Hub
+service:
+  id: 1                                      # ID сервиса
+scenario:
+  id: 1                                      # ID сценария
+  name: "existing_user_make_purchase_operation"                        # Название сценария
+  file: "./scenarios/http/gateway/existing_user_make_purchase_operation/v1.0.conf" # Путь к конфигу сценария
+  version: "v1.0"                            # Версия
+  number_of_users: 100                       # Количество пользователей
+  runtime_duration: "3m"                     # Длительность теста
+
+csv_locust_stats_file: "locust_http_gateway_existing_user_make_purchase_operation_stats.csv"                   # Итоговая статистика
+json_locust_ratio_file: "locust_http_gateway_existing_user_make_purchase_operation_stats.json"                 # Процентильное распределение
+csv_locust_exceptions_file: "locust_http_gateway_existing_user_make_purchase_operation_exception.csv"         # Исключения
+csv_locust_stats_history_file: "locust_http_gateway_existing_user_make_purchase_operation_stats_history.csv"   # Динамика по времени
