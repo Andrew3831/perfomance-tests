@@ -1,11 +1,11 @@
-api_url: "grpc://localhost:13000"
+api_url: "grpc://localhost:13100"
 
 service:
   id: 1
 
 scenario:
   id: 1
-  name: "new user get accounts"
+  name: "new_user_get_accounts"
   file: "./scenarios/grpc/gateway/new_user_get_accounts/v1.0.conf"
   version: "v1.0"
   number_of_users: 50

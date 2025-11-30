@@ -1,4 +1,5 @@
-api_url: "http://localhost:13000"
+api_url: "grpc://localhost:13000"
+
 
 service:
   id: 1
